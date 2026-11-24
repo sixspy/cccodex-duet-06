@@ -39,6 +39,14 @@ def api_悬():
 def api_结论列表():
     return 目录.结论列表()
 
+@路由.get("/api/冲正隔离")
+def api_冲正隔离():
+    return 目录.冲正隔离列表()
+
+@路由.get("/api/旁路凭证")
+def api_旁路凭证():
+    return 目录.旁路凭证列表()
+
 @路由.get("/api/夹具")
 def api_夹具():
     return 夹具.列表()
@@ -51,19 +59,19 @@ def api_左装(体: dict):
 def api_右装(体: dict):
     return 右装载.装一批(体)
 
-@路由.post("/api/左轨/夹具/{名}")
-def api_左夹(名: str):
+@路由.post("/api/左轨/夹具/{fixture}")
+def api_左夹(fixture: str):
     try:
-        return 左装载.装一批(夹具.读取(名))
+        return 左装载.装一批(夹具.读取(fixture))
     except FileNotFoundError:
-        raise HTTPException(404, 名)
+        raise HTTPException(404, fixture)
 
-@路由.post("/api/右轨/夹具/{名}")
-def api_右夹(名: str):
+@路由.post("/api/右轨/夹具/{fixture}")
+def api_右夹(fixture: str):
     try:
-        return 右装载.装一批(夹具.读取(名))
+        return 右装载.装一批(夹具.读取(fixture))
     except FileNotFoundError:
-        raise HTTPException(404, 名)
+        raise HTTPException(404, fixture)
 
 @路由.post("/api/对齐/跑")
 def api_对齐():

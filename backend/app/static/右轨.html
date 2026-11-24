@@ -37,6 +37,16 @@
         <pre class="报" id="报"></pre>
       </section>
       <section class="行卡"><div id="表"></div></section>
+      <section class="行卡">
+        <h2>冲正隔离（只读）</h2>
+        <p class="说明">负向或带冲正标记的右轨事件在此登记。旁路凭证=负向进旁路凭证不参与现行汇总，正向单独对齐，结论读现行正集；净值=正负加总后再对齐，不写旁路凭证。</p>
+        <div id="隔离表"></div>
+      </section>
+      <section class="行卡">
+        <h2>旁路凭证</h2>
+        <p class="说明">仅旁路凭证形态产生；净值形态不写凭证，读引用指向净值汇总。</p>
+        <div id="凭证表"></div>
+      </section>
 
     </main>
   </div>
@@ -49,9 +59,21 @@
   const paint = async () => {
     const rows = await get("/api/右轨");
     document.getElementById("表").innerHTML = 表(
-      ["事件编号","业务键","金额分","源键","命运","事件时","批次"],
+      ["事件编号","业务键","金额分","源键","命运","冲正","隔离形态","事件时","批次"],
       rows,
-      r => `<td>${r.事件编号}</td><td>${r.业务键}</td><td>${r.金额分}</td><td>${r.源键}</td><td>${徽(r.命运)}</td><td>${r.事件时}</td><td>${r.批次编号}</td>`
+      r => `<td>${r.事件编号}</td><td>${r.业务键}</td><td>${r.金额分}</td><td>${r.源键}</td><td>${徽(r.命运)}</td><td>${r.冲正标记 ? "冲正" : "-"}</td><td>${r.隔离形态 || "-"}</td><td>${r.事件时}</td><td>${r.批次编号}</td>`
+    );
+    const 隔离 = await get("/api/冲正隔离");
+    document.getElementById("隔离表").innerHTML = 表(
+      ["业务键","事件编号","金额分","冲正标记","形态","有效","读引用","时刻"],
+      隔离,
+      r => `<td>${r.业务键}</td><td>${r.事件编号}</td><td>${r.金额分}</td><td>${徽(r.冲正标记 ? "冲正" : "-")}</td><td>${徽(r.形态)}</td><td>${徽(r.有效 ? "valid" : "invalid")}</td><td>${r.读引用}</td><td>${r.时刻}</td>`
+    );
+    const 凭证 = await get("/api/旁路凭证");
+    document.getElementById("凭证表").innerHTML = 表(
+      ["凭证编号","事件编号","业务键","金额分","有效","时刻"],
+      凭证,
+      r => `<td>${r.凭证编号}</td><td>${r.事件编号}</td><td>${r.业务键}</td><td>${r.金额分}</td><td>${徽(r.有效 ? "valid" : "invalid")}</td><td>${r.时刻}</td>`
     );
   };
   await paint();

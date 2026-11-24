@@ -53,6 +53,14 @@ def 结论列表() -> list[dict]:
     conn.close()
     return [dict(r) for r in rows]
 
+def 冲正隔离列表() -> list[dict]:
+    from app.services import 冲正隔离
+    return 冲正隔离.隔离列表()
+
+def 旁路凭证列表() -> list[dict]:
+    from app.services import 冲正隔离
+    return 冲正隔离.凭证列表()
+
 def 概览() -> dict:
     conn = 连接()
     g = 轨规()
@@ -66,6 +74,8 @@ def 概览() -> dict:
         "对齐差数": conn.execute("SELECT COUNT(*) AS c FROM 对齐差").fetchone()["c"],
         "悬账数": conn.execute("SELECT COUNT(*) AS c FROM 悬账单").fetchone()["c"],
         "结论数": conn.execute("SELECT COUNT(*) AS c FROM 对拍结论").fetchone()["c"],
+        "冲正隔离数": conn.execute("SELECT COUNT(*) AS c FROM 冲正隔离").fetchone()["c"],
+        "旁路凭证数": conn.execute("SELECT COUNT(*) AS c FROM 旁路凭证 WHERE 有效=1").fetchone()["c"],
     }
     conn.close()
     return out

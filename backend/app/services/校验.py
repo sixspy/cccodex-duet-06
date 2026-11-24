@@ -5,7 +5,7 @@ from __future__ import annotations
 可选字 = ("币种", "渠道码", "备注")
 
 
-def 校验事件(ev: dict) -> list[str]:
+def 校验事件(ev: dict, 允许负: bool = False) -> list[str]:
     if not isinstance(ev, dict):
         return ["事件不是对象"]
     错: list[str] = []
@@ -15,7 +15,7 @@ def 校验事件(ev: dict) -> list[str]:
     金额 = ev.get("金额分", 0)
     try:
         n = int(金额)
-        if n < 0:
+        if n < 0 and not 允许负:
             错.append("金额分不可为负")
     except (TypeError, ValueError):
         错.append("金额分非整数")
@@ -27,7 +27,7 @@ def 校验事件(ev: dict) -> list[str]:
     return 错
 
 
-def 校验批次(体: dict) -> list[str]:
+def 校验批次(体: dict, 允许负: bool = False) -> list[str]:
     if not isinstance(体, dict):
         return ["体须为对象"]
     事件 = 体.get("事件")
@@ -38,7 +38,7 @@ def 校验批次(体: dict) -> list[str]:
     错: list[str] = []
     见: set[str] = set()
     for i, ev in enumerate(事件):
-        for e in 校验事件(ev or {}):
+        for e in 校验事件(ev or {}, 允许负=允许负):
             错.append(f"[{i}]{e}")
         编号 = str((ev or {}).get("事件编号", ""))
         if 编号 and 编号 in 见:

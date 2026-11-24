@@ -32,6 +32,12 @@
           <div class="工具条">
             <label>金额容差分 <input id="容差" style="width:100px"/></label>
             <label>站名 <input id="站名" style="width:120px"/></label>
+            <label>冲正隔离形态
+              <select id="冲正形态">
+                <option value="旁路凭证">旁路凭证</option>
+                <option value="净值">净值</option>
+              </select>
+            </label>
             <button id="存">保存</button>
           </div>
           <pre class="报" id="报"></pre>
@@ -42,6 +48,9 @@
             <li>对齐键默认业务键；同键多笔先汇总再比。</li>
             <li>容差分内算对齐，否则金额不符。</li>
             <li>仅单边有键 → 对齐差记左缺/右缺，并写入悬账单。</li>
+            <li>右轨金额为负或带冲正标记 → 装载清洗时择定隔离形态并落戳，切换形态只影响新入冲正。</li>
+            <li>旁路凭证：负向进旁路凭证不参与现行汇总，正向单独对齐，结论读现行正集。</li>
+            <li>净值：正负加总后再对齐，不写旁路凭证；冲正只读接口的读引用与旁路形态不同。</li>
           </ul>
         </div>
       </section>
@@ -54,9 +63,14 @@
   const s = await get("/api/轨规");
   document.getElementById("容差").value = s.金额容差分 || 0;
   document.getElementById("站名").value = s.站名 || "对拍";
+  document.getElementById("冲正形态").value = s.冲正隔离形态 || "旁路凭证";
   document.getElementById("报").textContent = JSON.stringify(s, null, 2);
   document.getElementById("存").onclick = async () => {
-    const body = { 金额容差分: document.getElementById("容差").value, 站名: document.getElementById("站名").value };
+    const body = {
+      金额容差分: document.getElementById("容差").value,
+      站名: document.getElementById("站名").value,
+      冲正隔离形态: document.getElementById("冲正形态").value,
+    };
     document.getElementById("报").textContent = JSON.stringify(await post("/api/轨规", body), null, 2);
   };
 })();

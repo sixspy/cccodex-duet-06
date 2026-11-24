@@ -28,11 +28,12 @@
 
       <section class="行卡">
         <h1>对齐差表</h1>
-        <p class="说明">按业务键汇总左右金额。差型：对齐 / 金额不符 / 左缺 / 右缺。跑对齐会重算并重写悬账单。</p>
+        <p class="说明">按业务键汇总左右金额。差型：对齐 / 金额不符 / 左缺 / 右缺。跑对齐会重算并重写悬账单。含冲正隔离的键在说明列标注形态与去向（旁路凭证不进现行汇总 / 净值已并现行）。</p>
         <div class="工具条">
           <button id="跑">跑对齐</button>
           <button class="次" id="刷">刷新</button>
         </div>
+        <div id="冲正情"></div>
         <pre class="报" id="报"></pre>
       </section>
       <section class="行卡"><div id="表"></div></section>
@@ -50,6 +51,8 @@
       r => `<td>${r.编号}</td><td>${r.业务键}</td><td>${r.左金额分 ?? "-"}</td><td>${r.右金额分 ?? "-"}</td>
         <td>${徽(r.差型)}</td><td>${r.说明}</td><td>${r.时刻}</td>`
     );
+    const o = await get("/api/概览");
+    document.getElementById("冲正情").innerHTML = 统计([["冲正隔离", o.冲正隔离数], ["旁路凭证", o.旁路凭证数]]);
   };
   await paint();
   document.getElementById("跑").onclick = async () => {

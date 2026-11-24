@@ -28,8 +28,9 @@
 
       <section class="行卡">
         <h1>悬账单</h1>
-        <p class="说明">对齐后仅单边有键（或需人工处理）的业务键。不是闸对/缝包那种「旁路匣」命名。</p>
+        <p class="说明">对齐后仅单边有键（或需人工处理）的业务键。不是闸对/缝包那种「旁路匣」命名。冲正隔离的负向在旁路凭证或净值汇总，不会被当成普通右缺悬账；涉及键在原因列标注。</p>
         <div class="工具条"><button class="次" id="刷">刷新</button></div>
+        <div id="冲正情"></div>
       </section>
       <section class="行卡"><div id="表"></div></section>
 
@@ -46,6 +47,8 @@
       r => `<td>${r.编号}</td><td>${r.业务键}</td><td>${徽(r.悬边)}</td><td>${r.金额分}</td>
         <td>${r.事件编号||"-"}</td><td>${r.原因}</td><td>${r.时刻}</td>`
     );
+    const o = await get("/api/概览");
+    document.getElementById("冲正情").innerHTML = 统计([["冲正隔离", o.冲正隔离数], ["旁路凭证", o.旁路凭证数]]);
   };
   await paint();
   document.getElementById("刷").onclick = paint;

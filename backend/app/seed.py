@@ -30,7 +30,28 @@ CREATE TABLE IF NOT EXISTS 右轨流水 (
   事件时 TEXT NOT NULL,
   处理时 TEXT NOT NULL,
   命运 TEXT NOT NULL DEFAULT '已入右',
-  批次编号 TEXT NOT NULL DEFAULT ''
+  批次编号 TEXT NOT NULL DEFAULT '',
+  冲正标记 INTEGER NOT NULL DEFAULT 0,
+  隔离形态 TEXT NOT NULL DEFAULT ''
+);
+CREATE TABLE IF NOT EXISTS 冲正隔离 (
+  编号 INTEGER PRIMARY KEY AUTOINCREMENT,
+  事件编号 TEXT NOT NULL UNIQUE,
+  业务键 TEXT NOT NULL,
+  金额分 INTEGER NOT NULL,
+  冲正标记 INTEGER NOT NULL DEFAULT 1,
+  形态 TEXT NOT NULL,
+  读引用 TEXT NOT NULL DEFAULT '',
+  有效 INTEGER NOT NULL DEFAULT 1,
+  时刻 TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS 旁路凭证 (
+  凭证编号 TEXT PRIMARY KEY,
+  事件编号 TEXT NOT NULL,
+  业务键 TEXT NOT NULL,
+  金额分 INTEGER NOT NULL,
+  有效 INTEGER NOT NULL DEFAULT 1,
+  时刻 TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS 对齐差 (
   编号 INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -76,16 +97,24 @@ def 此刻() -> str:
 def 初始化库() -> None:
     conn = 连接()
     conn.executescript(建表)
+    # 老库迁移：右轨流水补冲正列
+    右列 = {r["name"] for r in conn.execute("PRAGMA table_info(右轨流水)").fetchall()}
+    if "冲正标记" not in 右列:
+        conn.execute("ALTER TABLE 右轨流水 ADD COLUMN 冲正标记 INTEGER NOT NULL DEFAULT 0")
+    if "隔离形态" not in 右列:
+        conn.execute("ALTER TABLE 右轨流水 ADD COLUMN 隔离形态 TEXT NOT NULL DEFAULT ''")
     if conn.execute("SELECT COUNT(*) AS c FROM 轨规").fetchone()["c"] == 0:
         for k, v in {
             "站名": "对拍",
             "对齐键": "业务键",
             "金额容差分": "0",
+            "冲正隔离形态": "旁路凭证",
             "骨架": "左轨装载→右轨装载→同键对齐落差→单边悬账→对拍结论",
             "皮": "支付渠道回执 vs 核心记账",
             "去皮": "双源键对齐管道",
         }.items():
             conn.execute("INSERT INTO 轨规(键, 值) VALUES (?, ?)", (k, v))
+    conn.execute("INSERT OR IGNORE INTO 轨规(键, 值) VALUES ('冲正隔离形态', '旁路凭证')")
     if conn.execute("SELECT COUNT(*) AS c FROM 源登记").fetchone()["c"] == 0:
         conn.execute(
             "INSERT INTO 源登记(源键,轨别,名称,说明) VALUES (?,?,?,?)",
